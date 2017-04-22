@@ -17,7 +17,7 @@ const (
 func average(slc[]int)int {
 	total := 0
 	for _, v := range slc {
-		total +=v
+		total += v
 	}
 	return total/len(slc)
 }
