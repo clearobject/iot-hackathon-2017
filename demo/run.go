@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	sensitivity = 25
+	lightTolerance = 50
 )
 
 func average(slc[]int)int {
@@ -35,6 +35,7 @@ func calibrateLighting(lightSensor *aio.GroveLightSensorDriver) int {
 func main() {
 	e := edison.NewAdaptor()
 	lightSensor := aio.NewGroveLightSensorDriver(e, "0", 250)
+	temperatureSensor := aio.NewGroveTemperatureSensorDriver(e, "3")
 	screen := i2c.NewGroveLcdDriver(e)
 
 	fmt.Println(calibrateLighting(lightSensor))
@@ -43,18 +44,21 @@ func main() {
 	work := func() {
 		for {
 			lightScore, _ := lightSensor.Read()
+			temperature := temperatureSensor.Temperature()
+			fmt.Println(temperature)
 			delta := averageLight - lightScore
-			if math.Abs(float64(delta)) > sensitivity {
+			if math.Abs(float64(delta)) > lightTolerance {
 				screen.SetRGB(255, 0, 0)
-				time.Sleep(1 * time.Second)
+			} else {
+				screen.SetRGB(0, 255, 0)
 			}
-			screen.SetRGB(0, 255, 0)
+
 		}
 	}
 
 	robot := gobot.NewRobot("buttonBot",
 		[]gobot.Connection{e},
-		[]gobot.Device{screen, lightSensor},
+		[]gobot.Device{screen, lightSensor, temperatureSensor},
 		work,
 	)
 
