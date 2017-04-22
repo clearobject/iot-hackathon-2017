@@ -9,10 +9,9 @@ end
 
 task :deploy => :build do
   addresses = ENV['DEVICE_ADDRS'].split(',')
-  status = true
   addresses.each do |addr|
     puts "Deploying #{PROJECT} via scp to #{addr}..."
-    status ||= system("scp -r run #{addr}:#{DEPLOY_DIR}/")
+    `scp -r run #{addr}:#{DEPLOY_DIR}/`
   end
   File.delete('run')
 end

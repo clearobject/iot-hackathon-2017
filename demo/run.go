@@ -50,8 +50,7 @@ func main() {
 	work := func() {
 		for {
 			lightScore, _ := lightSensor.Read()
-			temperature := temperatureSensor.Temperature()
-			fmt.Println(temperature)
+			//temperature := temperatureSensor.Temperature()
 			delta := averageLight - lightScore
 			if math.Abs(float64(delta)) > lightTolerance {
 				screen.SetRGB(255, 0, 0)
