@@ -1,0 +1,22 @@
+---
+- hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Deploy reflector service script
+      copy:
+        src: reflector.service
+        dest: /etc/systemd/system/reflector.service
+
+    - name: Deploy binary
+      copy:
+        src: ../reflector
+        dest: /home/root/reflector
+        mode: 0700
+      register: deploy
+
+    - name: Restart service
+      service:
+        name: reflector
+        state: restarted
+      when: deploy.changed

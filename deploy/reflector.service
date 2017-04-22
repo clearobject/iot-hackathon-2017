@@ -1,0 +1,10 @@
+[Unit]
+Description=Reflector Service
+After=network.target
+
+[Service]
+ExecStart=/home/root/reflector
+PIDFile=/var/run/reflector.pid
+
+[Install]
+WantedBy=multi-user.target
