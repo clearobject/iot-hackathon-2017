@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"encoding/json"
-	"fmt"
 	"math"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 
 const (
 	lightTolerance = 50
-	mqttHost       = "tcp://104.154.233.174:1883"
+	mqttHost       = "tcp://104.154.46.156:1883"
 )
 
 // Event structure; basis for JSON / MQTT messages
@@ -49,7 +48,7 @@ func calibrateLighting(lightSensor *aio.GroveLightSensorDriver) int {
 func createEventJSON(ts *aio.GroveTemperatureSensorDriver) []byte {
 	host, _ := os.Hostname()
 	event := Event{
-		"edgeTrigger",
+		"sensorTrigger",
 		time.Now().Unix(),
 		host,
 		ts.Temperature(),
@@ -66,7 +65,6 @@ func main() {
 	screen := i2c.NewGroveLcdDriver(e)
 	mqttAdaptor := mqtt.NewAdaptorWithAuth(mqttHost, host, "test", "testpass")
 
-	fmt.Println(calibrateLighting(lightSensor))
 	averageLight := calibrateLighting(lightSensor)
 
 	work := func() {
