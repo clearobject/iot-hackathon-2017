@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
+	"encoding/json"
 	"fmt"
 	"math"
 	"time"
-	"encoding/json"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/aio"
@@ -17,13 +17,14 @@ import (
 
 const (
 	lightTolerance = 50
-	mqttHost = "tcp://104.154.233.174:1883"
+	mqttHost       = "tcp://104.154.233.174:1883"
 )
 
+// Event structure; basis for JSON / MQTT messages
 type Event struct {
-	Name string
-	Time int64
-	Source string
+	Name        string
+	Time        int64
+	Source      string
 	Temperature float64
 }
 
@@ -46,10 +47,11 @@ func calibrateLighting(lightSensor *aio.GroveLightSensorDriver) int {
 }
 
 func createEventJSON(ts *aio.GroveTemperatureSensorDriver) []byte {
+	host, _ := os.Hostname()
 	event := Event{
 		"edgeTrigger",
 		time.Now().Unix(),
-		os.Getenv("HOSTNAME"),
+		host,
 		ts.Temperature(),
 	}
 	output, _ := json.Marshal(event)
@@ -57,11 +59,12 @@ func createEventJSON(ts *aio.GroveTemperatureSensorDriver) []byte {
 }
 
 func main() {
+	host, _ := os.Hostname()
 	e := edison.NewAdaptor()
 	lightSensor := aio.NewGroveLightSensorDriver(e, "0", 250)
 	temperatureSensor := aio.NewGroveTemperatureSensorDriver(e, "3")
 	screen := i2c.NewGroveLcdDriver(e)
-	mqttAdaptor := mqtt.NewAdaptorWithAuth(mqttHost, os.Getenv("HOSTNAME"), "test", "testpass")
+	mqttAdaptor := mqtt.NewAdaptorWithAuth(mqttHost, host, "test", "testpass")
 
 	fmt.Println(calibrateLighting(lightSensor))
 	averageLight := calibrateLighting(lightSensor)
@@ -77,11 +80,10 @@ func main() {
 			} else {
 				screen.SetRGB(0, 255, 0)
 			}
-
 		}
 	}
 
-	robot := gobot.NewRobot("buttonBot",
+	robot := gobot.NewRobot("reflectorBot",
 		[]gobot.Connection{e, mqttAdaptor},
 		[]gobot.Device{screen, lightSensor, temperatureSensor},
 		work,
