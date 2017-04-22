@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"time"
+	"encoding/json"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/aio"
@@ -18,6 +19,13 @@ const (
 	lightTolerance = 50
 	mqttHost = "tcp://104.154.233.174:1883"
 )
+
+type Event struct {
+	Name string
+	Time int64
+	Source string
+	Temperature float64
+}
 
 func average(slc []int) int {
 	total := 0
@@ -37,6 +45,17 @@ func calibrateLighting(lightSensor *aio.GroveLightSensorDriver) int {
 	return average(readings)
 }
 
+func createEventJSON(ts *aio.GroveTemperatureSensorDriver) []byte {
+	event := Event{
+		"edgeTrigger",
+		time.Now().Unix(),
+		os.Getenv("HOSTNAME"),
+		ts.Temperature(),
+	}
+	output, _ := json.Marshal(event)
+	return []byte(output)
+}
+
 func main() {
 	e := edison.NewAdaptor()
 	lightSensor := aio.NewGroveLightSensorDriver(e, "0", 250)
@@ -50,11 +69,10 @@ func main() {
 	work := func() {
 		for {
 			lightScore, _ := lightSensor.Read()
-			//temperature := temperatureSensor.Temperature()
 			delta := averageLight - lightScore
 			if math.Abs(float64(delta)) > lightTolerance {
 				screen.SetRGB(255, 0, 0)
-				mqttAdaptor.Publish("reflectors", []byte("edgeTrigger"))
+				mqttAdaptor.Publish("reflectors", createEventJSON(temperatureSensor))
 				time.Sleep(1 * time.Second)
 			} else {
 				screen.SetRGB(0, 255, 0)

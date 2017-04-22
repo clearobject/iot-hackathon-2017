@@ -1,6 +1,6 @@
 DEPLOY_DIR  = '/home/root/'
-PROJECT = 'demo'
-BUILD_TARGET = "#{PROJECT}/run.go"
+PROJECT = 'event'
+BUILD_TARGET = 'run.go'
 
 task :build do
   status = system("GOARCH=386 GOOS=linux go build #{BUILD_TARGET}")
