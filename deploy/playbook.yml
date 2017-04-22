@@ -19,4 +19,5 @@
       service:
         name: reflector
         state: restarted
+        enabled: true
       when: deploy.changed
