@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	lightTolerance = 50
+	lightTolerance = 45
 	mqttHost       = "tcp://104.154.46.156:1883"
 )
 
