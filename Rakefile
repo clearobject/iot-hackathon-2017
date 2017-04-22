@@ -1,4 +1,3 @@
-DEVICE_ADDR = ENV['DEVICE_ADDR']
 DEPLOY_DIR  = '/home/root/'
 PROJECT = 'demo'
 BUILD_TARGET = "#{PROJECT}/run.go"
@@ -9,8 +8,11 @@ task :build do
 end
 
 task :deploy => :build do
-  puts "Deploying #{PROJECT} via scp to #{DEVICE_ADDR}..."
-  status = system("scp -r run #{DEVICE_ADDR}:#{DEPLOY_DIR}/")
+  addresses = ENV['DEVICE_ADDRS'].split(',')
+  status = true
+  addresses.each do |addr|
+    puts "Deploying #{PROJECT} via scp to #{addr}..."
+    status ||= system("scp -r run #{addr}:#{DEPLOY_DIR}/")
+  end
   File.delete('run')
-  puts "Deployment #{status ? 'SUCCESS' : 'FAILED'}"
 end

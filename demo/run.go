@@ -16,6 +16,7 @@ import (
 
 const (
 	lightTolerance = 50
+	mqttHost = "tcp://104.154.233.174:1883"
 )
 
 func average(slc []int) int {
@@ -41,7 +42,7 @@ func main() {
 	lightSensor := aio.NewGroveLightSensorDriver(e, "0", 250)
 	temperatureSensor := aio.NewGroveTemperatureSensorDriver(e, "3")
 	screen := i2c.NewGroveLcdDriver(e)
-	mqttAdaptor := mqtt.NewAdaptorWithAuth("tcp://104.154.233.174:1883", os.Getenv("HOSTNAME"), "test", "testpass")
+	mqttAdaptor := mqtt.NewAdaptorWithAuth(mqttHost, os.Getenv("HOSTNAME"), "test", "testpass")
 
 	fmt.Println(calibrateLighting(lightSensor))
 	averageLight := calibrateLighting(lightSensor)
@@ -54,6 +55,8 @@ func main() {
 			delta := averageLight - lightScore
 			if math.Abs(float64(delta)) > lightTolerance {
 				screen.SetRGB(255, 0, 0)
+				mqttAdaptor.Publish("reflectors", []byte("edgeTrigger"))
+				time.Sleep(1 * time.Second)
 			} else {
 				screen.SetRGB(0, 255, 0)
 			}
